@@ -1,0 +1,21 @@
+=RSolr::EM
+
+Used like so:
+
+  EM.run do
+    http = RSolr::EM.new 'http://localhost:8983/solr/'
+    solr = RSolr::Client.new http
+    solr.get('select',
+    :params => {:q => '*:*'},
+	:callback => proc do |client, conn, context, response|
+      p 'cb'
+      p response
+      EM.stop
+    end,
+    :errback => proc do |client, conn, context, response_text|
+      p 'err'
+      puts response_text
+      EM.stop
+    end
+  )
+end
