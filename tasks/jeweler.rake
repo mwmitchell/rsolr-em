@@ -2,7 +2,7 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gemspec|
     gemspec.name = "rsolr-em"
-    gemspec.summary = "EventMachine Connection for RSolr - Ruby 1.8"
+    gemspec.summary = "EventMachine Connection for RSolr"
     gemspec.description = "EventMachine/async based connection driver for RSolr -- compatible with Ruby 1.8"
     gemspec.email = "goodieboy@gmail.com"
     gemspec.homepage = "http://github.com/mwmitchell/rsolr-em"
@@ -10,7 +10,7 @@ begin
     
     gemspec.files = FileList['lib/**/*.rb', 'LICENSE', 'README.rdoc', 'VERSION']
     
-    gemspec.test_files = ['spec/**/*.rb', 'Rakefile', 'tasks/spec.rake', 'tasks/rdoc.rake']
+    gemspec.test_files = ['spec/**/*.rb', 'Rakefile']
     
     gemspec.add_dependency('eventmachine', '>=0.12.10')
     
