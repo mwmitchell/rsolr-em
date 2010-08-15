@@ -6,16 +6,16 @@ Used like so:
     http = RSolr::EM.new 'http://localhost:8983/solr/'
     solr = RSolr::Client.new http
     solr.get('select',
-    :params => {:q => '*:*'},
-	:callback => proc do |client, conn, context, response|
-      p 'cb'
-      p response
-      EM.stop
-    end,
-    :errback => proc do |client, conn, context, response_text|
-      p 'err'
-      puts response_text
-      EM.stop
-    end
-  )
-end
+      :params => {:q => '*:*'},
+	    :on_success => proc do |response, req, res|
+        p 'success'
+        p response
+        EM.stop
+      end,
+      :on_error => proc do |req,res,e|
+        p 'error'
+        puts e.to_s
+        EM.stop
+      end
+    )
+  end

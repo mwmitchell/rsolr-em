@@ -10,39 +10,32 @@ end
 
 module RSolr
   
-  class EMHttp
+  class EM
     
     include RSolr::Connectable
     
-    attr_reader :url, :proxy, :options, :request_options
-    
-    def initialize options = {}
-      super
-      @options = options
-      @url = options[:base_url]
-      if options[:proxy]
-        uri = URI.parse(options[:proxy])
-        @proxy = {
-          :host => uri.host,
-          :port => uri.port,
-          :authorization => [uri.user, uri.password]
-        }
-      end
+    # override the built-in RSolr send_request method
+    # so we can avoid evaling the response until it's
+    # actually received.
+    def send_request path, opts
+      request_context = build_request path, opts
+      execute request_context
     end
-
-    def send_request(options)
-      method = options[:method]
-      options[:head] = options[:headers]
-      options[:body] = options[:data]
-      options[:proxy] ||= @proxy if @proxy
+    
+    def execute request_context
+      method = request_context[:method]
+      options = {}
+      options[:head] = request_context[:headers] if request_context[:headers]
+      options[:body] = request_context[:data] if request_context[:body]
+      options[:proxy] ||= self.proxy if self.proxy
       
-      @request_options = options
-      uri = URI.parse("#{@url}#{options[:uri]}")
+      uri = request_context[:uri]
+      http_request = EventMachine::HttpRequest.new(uri.to_s)
+      http = http_request.send(method, options)
       
-      http = EventMachine::HttpRequest.
-        new(uri.to_s[/.*\?/][0..-2]).
-        send(method, options.merge(:query => options[:query]))
-
+      success_cb = request_context[:on_success]
+      error_cb = request_context[:on_error]
+      
       http.callback { |http|
         begin
           response_hash = {
@@ -50,34 +43,35 @@ module RSolr
             :status => http.response_header.status,
             :headers => http.response_header
           }
-          obj = options[:client].adapt_response(@request_options,
-                                                response_hash)
-          
-          unless obj.is_a?(Hash)
-            raise RSolr::Error::InvalidRubyResponse.new(@request_options, 
-                                                        response_hash)
+          solr_response = adapt_response(request_context, response_hash)
+          success_cb_args = case success_cb.arity
+          when 1
+            [solr_response]
+          when 2
+            [solr_response, request_context]
+          when 3
+            [solr_response, request_context, response_hash]
           end
-          @request_options[:callback].call(options[:client],
-                                           http,
-                                           @request_options,
-                                           obj)
-        rescue RSolr::Error::InvalidRubyResponse => e
-          if @request_options[:errback]
-            @request_options[:errback].call(options[:client],
-                                            http,
-                                            @request_options,
-                                            http.response)
+          success_cb.call *success_cb_args
+        rescue
+          if error_cb
+            error_cb_args = case error_cb.arity
+            when 1
+              [request_context]
+            when 2
+              [request_context, response_hash]
+            when 3
+              [request_context, response_hash, $!]
+            end
+            error_cb.call *error_cb_args
+          else
+            raise e
           end
         end # begin/rescue clause
       }
-      
       http.errback {
-        p 'err'
-        if @request_options[:errback]
-          @request_options[:errback].call(options[:client],
-                                          http,
-                                          @request_options,
-                                          http.response)
+        if error_cb
+          error_cb.call request_context, {}, nil
         end
       }
     end
