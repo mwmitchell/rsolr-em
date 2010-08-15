@@ -7,7 +7,7 @@ Used like so:
     solr = RSolr::Client.new http
     solr.get('select',
       :params => {:q => '*:*'},
-	    :on_success => proc do |response, req, res|
+      :on_success => proc do |response, req, res|
         p 'success'
         p response
         EM.stop
