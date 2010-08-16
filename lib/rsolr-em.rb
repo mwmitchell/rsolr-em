@@ -26,7 +26,7 @@ module RSolr
       method = request_context[:method]
       options = {}
       options[:head] = request_context[:headers] if request_context[:headers]
-      options[:body] = request_context[:data] if request_context[:body]
+      options[:body] = request_context[:data] if request_context[:body].to_s
       options[:proxy] ||= self.proxy if self.proxy
       
       uri = request_context[:uri]
@@ -65,7 +65,7 @@ module RSolr
             end
             error_cb.call *error_cb_args
           else
-            raise e
+            raise $!
           end
         end # begin/rescue clause
       }
