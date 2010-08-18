@@ -33,8 +33,8 @@ module RSolr
       http_request = EventMachine::HttpRequest.new(uri.to_s)
       http = http_request.send(method, options)
       
-      success_cb = request_context[:on_success]
-      error_cb = request_context[:on_error]
+      success_cb = request_context[:on_success] || request_context[:callback]
+      error_cb = request_context[:on_error] || request_context[:errback]
       
       http.callback { |http|
         begin
