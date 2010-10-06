@@ -14,6 +14,8 @@ begin
     
     gemspec.add_dependency('eventmachine', '>=0.12.10')
     
+    gemspec.add_dependency('rsolr', '>=1.0.0.beta3')
+    
     now = Time.now
     gemspec.date = "#{now.year}-#{now.month}-#{now.day}"
     

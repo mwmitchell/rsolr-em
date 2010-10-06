@@ -1,5 +1,6 @@
-require 'eventmachine'
-require 'em-http'
+require "eventmachine"
+require "em-http"
+require "rsolr"
 
 # Need by em-http on ruby 1.8 :(
 unless "".respond_to?(:bytesize)
@@ -12,17 +13,21 @@ module RSolr
   
   class EM
     
-    include RSolr::Connectable
+    include RSolr::Requestable
+    include RSolr::Responseable
     
     # override the built-in RSolr send_request method
     # so we can avoid evaling the response until it's
     # actually received.
-    def send_request path, opts
+    def send_and_receive path, opts
       request_context = build_request path, opts
       execute request_context
     end
     
     def execute request_context
+      
+      puts "REQUEST CONTEXT: #{request_context.inspect}"
+      
       method = request_context[:method]
       options = {}
       options[:head] = request_context[:headers] if request_context[:headers]
