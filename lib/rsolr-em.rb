@@ -25,9 +25,6 @@ module RSolr
     end
     
     def execute request_context
-      
-      puts "REQUEST CONTEXT: #{request_context.inspect}"
-      
       method = request_context[:method]
       options = {}
       options[:head] = request_context[:headers] if request_context[:headers]
