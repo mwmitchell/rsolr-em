@@ -24,8 +24,8 @@ module RSolr
       http_request = EventMachine::HttpRequest.new(uri.to_s)
       http = http_request.send(method, options)
       
-      success_cb = request_context[:on_success] || request_context[:callback]
-      error_cb = request_context[:on_error] || request_context[:errback]
+      success_cb = request_context[:success] || request_context[:callback]
+      error_cb = request_context[:error] || request_context[:errback]
       
       http.callback { |http|
         begin
@@ -48,11 +48,11 @@ module RSolr
           if error_cb
             error_cb_args = case error_cb.arity
             when 1
-              [request_context]
+              [$!]
             when 2
-              [request_context, response_hash]
+              [$!, request_context, response_hash]
             when 3
-              [request_context, response_hash, $!]
+              [$!, request_context, response_hash]
             end
             error_cb.call *error_cb_args
           else
